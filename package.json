@@ -2,9 +2,10 @@
   "name": "javascript-backend",
   "version": "1.0.0",
   "description": "javascript backend",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js"
   },
   "keywords": [
     "backend",
@@ -12,7 +13,9 @@
   ],
   "author": "Nishu Pal",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
+    "D": "^1.0.0",
+    "i": "^0.3.7",
     "nodemon": "^3.0.3"
   }
 }
