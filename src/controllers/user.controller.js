@@ -1,6 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
-import {user} from "../models/user.model.js"
+import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 
@@ -29,7 +29,7 @@ const registerUser = asyncHandler(async (req,res)=>{
 
 
     //check user already present or not
-    const existedUser = user.findOne({$or : [{ username } , { email }]})
+    const existedUser = await User.findOne({$or : [{ username } , { email }]})
     if(existedUser){
         throw new ApiError(409,"user with email or username already present")
     }
@@ -37,7 +37,11 @@ const registerUser = asyncHandler(async (req,res)=>{
 
     //check for images avatar present or not
     const avatarLocalPath = req.files?.avatar[0]?.path
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    //const coverImageLocalPath = req.files?.coverImage[0]?.path
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
     if(!avatarLocalPath){
         throw new ApiError(400,"Avatar file is required")
     }
@@ -45,17 +49,17 @@ const registerUser = asyncHandler(async (req,res)=>{
 
     //upload them to clodinary
     const avatar = await uploadOnCloudinary(avatarLocalPath)
-    const coverimage = await uploadOnCloudinary(coverImageLocalPath)
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
     if(!avatar){
         throw new ApiError(400,"Avatar file is required")
     }
 
 
     //create user object
-    const user = await user.create({
+    const user = await User.create({
         fullName ,
         avatar : avatar.url,
-        coverImage : coverImage?.url||"",
+        coverImage : coverImage?.url || "",
         email,
         password,
         username:username.toLowerCase()
@@ -65,7 +69,7 @@ const registerUser = asyncHandler(async (req,res)=>{
 
 
     //check user is created or not and remove password and refresh tokken
-    const createdUser = await user.findById(user._id).select(
+    const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
     if(!createdUser){
